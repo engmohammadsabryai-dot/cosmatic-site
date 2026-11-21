@@ -1,0 +1,9 @@
+# Video raw MOV files (too large for GitHub)
+*.MOV
+
+# System & temporary files
+.snapshots/
+*.py
+*.bak
+tg_page.html
+extracted_messages.txt
