@@ -2,8 +2,11 @@
 *.MOV
 
 # System & temporary files
+.firebase/
 .snapshots/
 *.py
 *.bak
+*.log
 tg_page.html
 extracted_messages.txt
+"location  photo_2026-09-09_10-00-59.jpg"
