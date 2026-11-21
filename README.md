@@ -29,7 +29,7 @@
 3. **حاسبة باقات الأسعار المباشرة (Treatment Cost Calculator):**
    - إمكانية اختيار أكثر من علاج تجميلي مع احتساب فوري للتكلفة.
    - خصم تلقائي 10% عند حجز باقة متعددة.
-   - محول عملات لحظي (UZS - سوم أوزبكي، USD - دولار أمريكي، RUB - روبل روسي، SAR - ريال سعودي).
+   - عرض الأسعار بعملتي UZS وUSD وفق الأسعار المحددة في الكود؛ لا توجد خدمة أسعار صرف مباشرة.
 
 4. **معرض نتائج تفاعلي (Interactive Before / After Comparison):**
    - شريط تمرير تفاعلي للمقارنة بين نتائج جلسات الفيلر، البوتوكس، وتحديد الفك.
@@ -61,3 +61,32 @@
 - **الهاتف / واتساب:** `+998900179000`
 - **قناة التليجرام:** [@kosmetologiya_dilya1](https://t.me/kosmetologiya_dilya1) (أكثر من 135,000 عضو)
 - **حساب الإنستغرام:** [@kosmetologdilya1](https://instagram.com/kosmetologdilya1)
+
+
+## Local preview and deployment
+
+Requires Node.js. Run `node build.mjs` from this directory to create `public/`,
+then serve that directory with a local HTTP server (for example,
+`python -m http.server 8080 --directory public`). Edit the root source files;
+`public/` is generated and replaced on each build.
+
+Firebase Hosting runs the build automatically before deployment. Only the three
+frontend files and locally referenced image/video assets are copied. Project
+metadata, Telegram exports, backups, raw videos and deployment tools stay outside
+the hosting directory. Unknown paths return 404 rather than the homepage.
+
+Security headers are configured in `firebase.json`, including a script policy
+that permits only same-origin external scripts. Inline styles remain permitted
+for the existing design. Google Fonts, cdnjs fonts/styles and the Google Maps
+frame are explicitly permitted. Use Firebase Hosting or its emulator to check
+these headers; a generic local file server does not apply them.
+
+Appointments use the current date in Asia/Tashkent. WhatsApp opens with a draft;
+the visitor must send it, and the clinic must confirm availability. No appointment
+is stored by this static site. A WhatsApp fallback link remains available when
+new tabs are blocked. Changing local sources does not update the live website
+until a separate deployment is performed.
+
+Run regression checks with `node --test tests/security.test.cjs`.
+These tests use Node's built-in runner and a lightweight DOM fixture for logic;
+they do not replace browser rendering or a deployed-header integration test.

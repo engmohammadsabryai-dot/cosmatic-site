@@ -1440,18 +1440,13 @@ button {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 50%;
+  width: 100%;
   overflow: hidden;
   z-index: 2;
-  border-right: 3px solid #ffffff;
+  clip-path: inset(0 50% 0 0);
 }
 
-[dir="rtl"] .ba-after-wrap {
-  left: auto;
-  right: 0;
-  border-right: none;
-  border-left: 3px solid #ffffff;
-}
+.ba-slider-container { direction: ltr; }
 
 .ba-slider-range {
   position: absolute;
@@ -1503,15 +1498,7 @@ button {
   left: 15px;
 }
 
-[dir="rtl"] .ba-label-before {
-  right: auto;
-  left: 15px;
-}
 
-[dir="rtl"] .ba-label-after {
-  left: auto;
-  right: 15px;
-}
 
 /* Reviews & Testimonials */
 .reviews-section {
@@ -2248,4 +2235,23 @@ textarea.form-control {
   body {
     padding-bottom: 70px;
   }
+}
+
+/* Keep navigation usable when translated labels need more room. */
+.nav-wrap { height: auto; min-height: 80px; flex-wrap: wrap; gap: 1rem; padding-block: 0.75rem; }
+.nav-wrap > nav { order: 3; flex-basis: 100%; }
+.nav-menu { flex-wrap: wrap; justify-content: center; }
+.header-booking { display: none; }
+.reel-card:focus-visible, .ba-slider-container:focus-within { outline: 3px solid var(--primary); outline-offset: 3px; }
+@media (min-width: 1200px) { .header-booking { display: inline-flex; } }
+@media (max-width: 768px) {
+  .nav-wrap > nav { flex-basis: 0; }
+  .nav-menu { position: absolute; top: 100%; max-height: 75vh; overflow-y: auto; flex-wrap: nowrap; align-items: stretch; }
+  .mobile-lang-row { display: block !important; }
+  .header-actions > .lang-segmented { display: none; }
+  .header-actions { gap: 0.4rem; }
+  .logo-title { font-size: 1rem; }
+  .logo-subtitle { font-size: 0.55rem; letter-spacing: 0.05em; }
+  .logo-icon { width: 34px; height: 34px; flex-shrink: 0; }
+  .brand-logo { gap: 0.4rem; }
 }

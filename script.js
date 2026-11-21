@@ -3,7 +3,7 @@
  * Multi-language (UZ, RU, EN, AR), WhatsApp Booking, Price Calculator & Media
  */
 
-// Exchange Rate USD to UZS (approximate market rate for live conversion)
+// Fixed reference rate used only for old-price estimates; not a live exchange rate.
 const USD_RATE = 13000;
 
 // Safe retrieval of stored language and currency
@@ -450,7 +450,7 @@ const translations = {
     calc_box_title: "Xizmatlarni tanlang:",
     calc_summary_title: "Tanlangan xizmatlar",
     calc_selected_count: "Tanlangan:",
-    calc_discount_text: "2 tadan ortiq xizmat uchun 10% chegirma taqdim etildi!",
+    calc_discount_text: "2 yoki undan ortiq xizmat uchun 10% chegirma taqdim etildi!",
     calc_total_label: "Jami to'lov:",
     btn_calc_book: "To'plamni WhatsApp'da band qilish",
     about_tag: "KOSMETOLOG HAQIDA",
@@ -542,8 +542,8 @@ const translations = {
     footer_quick_links: "Tezkor Havolalar",
     footer_services_title: "Mashhur Xizmatlar",
     footer_rights: "Barcha huquqlar himoyalangan.",
-    modal_success_title: "Buyurtma Yuborildi!",
-    modal_success_p: "Ma'lumotlaringiz WhatsApp orqali yuborildi. Administratorimiz tez orada siz bilan bog'lanib, vaqtni tasdiqlaydi.",
+    modal_success_title: "Buyurtma tayyor!",
+    modal_success_p: "WhatsApp tayyor xabar bilan ochiladi. Yuborish tugmasini bosing. Agar ochilmasa, quyidagi WhatsApp havolasidan foydalaning.",
     btn_modal_close: "Tushunarli"
   },
   ru: {
@@ -996,6 +996,34 @@ const translations = {
 };
 
 // Format Price based on current Currency and Language
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
+}
+
+function clinicToday() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  const part = type => parts.find(item => item.type === type).value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
+
+function playVideo(player) {
+  const playback = player.play();
+  if (playback) playback.catch(() => {}); // Autoplay can be blocked by the browser.
+}
+
+function openWhatsApp(url) {
+  if (!url || !url.startsWith('https://wa.me/')) return;
+  // Keep the direct user gesture so mobile browsers do not block the new tab.
+  const fallback = document.getElementById('whatsappFallback');
+  if (fallback) fallback.href = url;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  showModal('successModal');
+}
+
 function formatPrice(priceUzs, priceUsd) {
   if (currentCurrency === 'usd') {
     return `$${priceUsd}`;
@@ -1013,17 +1041,18 @@ function renderServices() {
     : servicesData.filter(s => s.category === activeCategory);
 
   container.innerHTML = filtered.map(service => {
-    const name = service.name[currentLang] || service.name.uz;
-    const desc = service.desc[currentLang] || service.desc.uz;
+    const name = escapeHtml(service.name[currentLang] || service.name.uz);
+    const desc = escapeHtml(service.desc[currentLang] || service.desc.uz);
+    const category = escapeHtml(service.category);
     const priceFormatted = formatPrice(service.priceUzs, service.priceUsd);
     const oldPriceFormatted = service.oldPriceUzs 
       ? (currentCurrency === 'usd' ? `$${service.oldPriceUsd || Math.round(service.oldPriceUzs / USD_RATE)}` : new Intl.NumberFormat('uz-UZ').format(service.oldPriceUzs) + ' UZS')
       : '';
 
     return `
-      <div class="service-card ${service.popular ? 'featured' : ''}" data-category="${service.category}">
+      <div class="service-card ${service.popular ? 'featured' : ''}" data-category="${category}">
         <div class="service-top">
-          <span class="service-category-tag">${service.category.toUpperCase()}</span>
+          <span class="service-category-tag">${category.toUpperCase()}</span>
           <h3 class="service-name">${name}</h3>
           <p class="service-desc">${desc}</p>
           <div class="service-meta-pills">
@@ -1037,7 +1066,7 @@ function renderServices() {
             ${oldPriceFormatted ? `<span class="price-old">${oldPriceFormatted}</span>` : ''}
             <span class="price-current">${priceFormatted}</span>
           </div>
-          <button class="btn btn-primary btn-book-service" onclick="preselectAndBook('${service.id}')">
+          <button class="btn btn-primary btn-book-service" type="button" data-book-service="${escapeHtml(service.id)}">
             <i class="fa-brands fa-whatsapp"></i>
             <span>${translations[currentLang].btn_book_item}</span>
           </button>
@@ -1054,12 +1083,12 @@ function renderCalculator() {
 
   container.innerHTML = servicesData.map(service => {
     const isSelected = selectedCalcItems.has(service.id);
-    const name = service.name[currentLang] || service.name.uz;
+    const name = escapeHtml(service.name[currentLang] || service.name.uz);
     const priceFormatted = formatPrice(service.priceUzs, service.priceUsd);
 
     return `
-      <label class="calc-checkbox-label ${isSelected ? 'selected' : ''}" onclick="toggleCalcItem('${service.id}')">
-        <input type="checkbox" class="calc-checkbox" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleCalcItem('${service.id}')">
+      <label class="calc-checkbox-label ${isSelected ? 'selected' : ''}">
+        <input type="checkbox" class="calc-checkbox" ${isSelected ? 'checked' : ''} data-calc-service="${escapeHtml(service.id)}">
         <div class="calc-item-text">
           <span class="calc-item-name">${name}</span>
           <span class="calc-item-price">${priceFormatted}</span>
@@ -1073,12 +1102,18 @@ function renderCalculator() {
 
 // Toggle Calculator Selection
 function toggleCalcItem(id) {
+  if (!servicesData.some(service => service.id === id)) return;
   if (selectedCalcItems.has(id)) {
     selectedCalcItems.delete(id);
   } else {
     selectedCalcItems.add(id);
   }
-  renderCalculator();
+  const input = document.querySelector(`[data-calc-service="${id}"]`);
+  if (input) {
+    input.checked = selectedCalcItems.has(id);
+    input.closest('label').classList.toggle('selected', input.checked);
+  }
+  updateCalcSummary();
 }
 
 // Update Calculator Summary Calculation
@@ -1142,12 +1177,12 @@ function bookCalcPackage() {
 Xizmatlar to'plami:
 ${selectedNames}
 
-💰 Jami narxi: ${totalStr} (chegirma bilan)
+💰 Jami narxi: ${totalStr}
 
 Menga ushbu to'plam bo'yicha qulay vaqt belgilab bersangiz!`
   );
 
-  window.open(`https://wa.me/998900179000?text=${msg}`, '_blank');
+  openWhatsApp(`https://wa.me/998900179000?text=${msg}`);
 }
 
 // Populate Service Select in Booking Form
@@ -1158,9 +1193,9 @@ function populateServiceSelect() {
   const currentVal = select.value;
   select.innerHTML = `<option value="">${translations[currentLang].select_service_ph}</option>` +
     servicesData.map(s => {
-      const name = s.name[currentLang] || s.name.uz;
+      const name = escapeHtml(s.name[currentLang] || s.name.uz);
       const price = formatPrice(s.priceUzs, s.priceUsd);
-      return `<option value="${s.id}">${name} (${price})</option>`;
+      return `<option value="${escapeHtml(s.id)}">${name} (${price})</option>`;
     }).join('');
 
   if (currentVal) select.value = currentVal;
@@ -1180,7 +1215,7 @@ function preselectAndBook(serviceId) {
 
 // Switch Language and Refresh UI
 function setLanguage(lang) {
-  if (!translations[lang]) return;
+  if (!Object.hasOwn(translations, lang)) return;
   currentLang = lang;
 
   // Safe localStorage save
@@ -1231,7 +1266,7 @@ function setLanguage(lang) {
   // Update static text elements with data-i18n
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (translations[lang] && translations[lang][key] !== undefined) {
+    if (translations[lang] && Object.hasOwn(translations[lang], key)) {
       el.textContent = translations[lang][key];
     }
   });
@@ -1239,7 +1274,7 @@ function setLanguage(lang) {
   // Update placeholders
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     const key = el.getAttribute('data-i18n-ph');
-    if (translations[lang] && translations[lang][key] !== undefined) {
+    if (translations[lang] && Object.hasOwn(translations[lang], key)) {
       el.setAttribute('placeholder', translations[lang][key]);
     }
   });
@@ -1249,10 +1284,14 @@ function setLanguage(lang) {
   renderCalculator();
   populateServiceSelect();
   renderReels();
+  document.querySelectorAll('.faq-item.active .faq-answer').forEach(answer => {
+    answer.style.maxHeight = answer.scrollHeight + 'px';
+  });
 }
 
 // Switch Currency (UZS / USD)
 function setCurrency(curr) {
+  if (!['uzs', 'usd'].includes(curr)) return;
   currentCurrency = curr;
   try {
     localStorage.setItem('kd_currency', curr);
@@ -1275,12 +1314,12 @@ function renderReels() {
   if (!container) return;
 
   container.innerHTML = clinicReels.map((reel, idx) => {
-    const title = reel.title[currentLang] || reel.title.uz;
+    const title = escapeHtml(reel.title[currentLang] || reel.title.uz);
     return `
-      <div class="reel-card" onclick="openVideoModal('${reel.file}')">
-        <video class="reel-video" src="${reel.file}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>
+      <div class="reel-card" role="button" tabindex="0" aria-label="${title}" data-video="${escapeHtml(reel.file)}">
+        <video class="reel-video" src="${escapeHtml(reel.file)}" muted loop playsinline preload="none"></video>
         <div class="reel-overlay">
-          <span class="reel-badge"><i class="fa-solid fa-sparkles"></i> ${reel.tag}</span>
+          <span class="reel-badge"><i class="fa-solid fa-sparkles"></i> ${escapeHtml(reel.tag)}</span>
           <div class="reel-play-btn"><i class="fa-solid fa-play"></i></div>
           <div class="reel-caption">${title}</div>
         </div>
@@ -1291,12 +1330,13 @@ function renderReels() {
 
 // Video Lightbox Modal Controls
 function openVideoModal(videoSrc) {
+  if (!clinicReels.some(reel => reel.file === videoSrc)) return;
   const modal = document.getElementById('videoModal');
   const player = document.getElementById('modalVideoPlayer');
   if (modal && player) {
     player.src = videoSrc;
-    modal.classList.add('open');
-    player.play();
+    showModal('videoModal');
+    playVideo(player);
   }
 }
 
@@ -1305,8 +1345,9 @@ function closeVideoModal() {
   const player = document.getElementById('modalVideoPlayer');
   if (modal && player) {
     player.pause();
-    player.src = "";
-    modal.classList.remove('open');
+    player.removeAttribute('src');
+    player.load();
+    hideModal('videoModal');
   }
 }
 
@@ -1320,7 +1361,7 @@ function initBeforeAfterSlider() {
 
   slider.addEventListener('input', (e) => {
     const val = e.target.value;
-    afterWrap.style.width = `${val}%`;
+    afterWrap.style.clipPath = `inset(0 ${100 - Number(val)}% 0 0)`;
     handle.style.left = `${val}%`;
   });
 }
@@ -1329,15 +1370,27 @@ function initBeforeAfterSlider() {
 function handleBookingSubmit(event) {
   event.preventDefault();
 
-  const name = document.getElementById('bookName')?.value.trim();
+  const form = document.getElementById('bookingForm');
+  const nameInput = document.getElementById('bookName');
+  const dateInput = document.getElementById('bookDate');
+  nameInput.value = nameInput.value.trim();
+  dateInput.min = clinicToday();
+  if (!form.reportValidity()) return;
+  const name = nameInput.value;
   const phone = document.getElementById('bookPhone')?.value.trim();
   const serviceId = document.getElementById('bookingServiceSelect')?.value;
   const date = document.getElementById('bookDate')?.value;
-  const time = document.getElementById('bookTime')?.value;
+  const timeSelect = document.getElementById('bookTime');
+  const time = timeSelect?.selectedOptions[0]?.textContent;
   const notes = document.getElementById('bookNotes')?.value.trim();
 
   if (!name || !phone) {
     alert(currentLang === 'uz' ? "Iltimos, ismingiz va telefon raqamingizni kiriting!" : "Пожалуйста, введите имя и номер телефона!");
+    return;
+  }
+
+  if (date && date < clinicToday()) {
+    alert(currentLang === 'ar' ? 'يرجى اختيار تاريخ حجز يبدأ من اليوم فصاعداً' : (currentLang === 'uz' ? 'Iltimos, bugungi yoki undan keyingi sanani tanlang!' : 'Пожалуйста, выберите сегодняшнюю или будущую дату!'));
     return;
   }
 
@@ -1360,21 +1413,78 @@ ${notes ? `💬 *Qo'shimcha / Пожелания:* ${notes}\n` : ''}━━━━
 
   const whatsappUrl = `https://wa.me/998900179000?text=${encodeURIComponent(messageText)}`;
 
-  // Show Success Confirmation Modal
-  const successModal = document.getElementById('successModal');
-  if (successModal) {
-    successModal.classList.add('open');
-  }
-
-  // Open WhatsApp in new tab
-  setTimeout(() => {
-    window.open(whatsappUrl, '_blank');
-  }, 400);
+  openWhatsApp(whatsappUrl);
 }
 
 function closeSuccessModal() {
-  document.getElementById('successModal')?.classList.remove('open');
-  document.getElementById('bookingForm')?.reset();
+  hideModal('successModal');
+}
+
+let modalOpener = null;
+function showModal(id) {
+  modalOpener = document.activeElement;
+  const modal = document.getElementById(id);
+  modal?.classList.add('open');
+  modal?.querySelector('button, a[href]')?.focus();
+}
+
+function hideModal(id) {
+  document.getElementById(id)?.classList.remove('open');
+  modalOpener?.focus();
+}
+
+function initActions() {
+  document.getElementById('bookingForm')?.addEventListener('submit', handleBookingSubmit);
+  document.querySelectorAll('.curr-btn').forEach(button => {
+    button.addEventListener('click', () => setCurrency(button.dataset.curr));
+  });
+  document.getElementById('btnCalcBook')?.addEventListener('click', bookCalcPackage);
+  document.querySelectorAll('[data-close-modal]').forEach(button => {
+    button.addEventListener('click', () => button.dataset.closeModal === 'videoModal'
+      ? closeVideoModal() : closeSuccessModal());
+  });
+  document.getElementById('servicesGrid')?.addEventListener('click', event => {
+    const button = event.target.closest('[data-book-service]');
+    if (button) preselectAndBook(button.dataset.bookService);
+  });
+  document.getElementById('calcItemsGrid')?.addEventListener('change', event => {
+    if (event.target.matches('[data-calc-service]')) toggleCalcItem(event.target.dataset.calcService);
+  });
+  const reels = document.getElementById('reelsGrid');
+  reels?.addEventListener('click', event => {
+    const card = event.target.closest('[data-video]');
+    if (card) openVideoModal(card.dataset.video);
+  });
+  reels?.addEventListener('keydown', event => {
+    if (event.target.matches('[data-video]') && ['Enter', ' '].includes(event.key)) {
+      event.preventDefault();
+      openVideoModal(event.target.dataset.video);
+    }
+  });
+  reels?.addEventListener('pointerover', event => {
+    const card = event.target.closest('[data-video]');
+    if (card && !card.contains(event.relatedTarget)) playVideo(card.querySelector('video'));
+  });
+  reels?.addEventListener('pointerout', event => {
+    const card = event.target.closest('[data-video]');
+    if (card && !card.contains(event.relatedTarget)) card.querySelector('video').pause();
+  });
+  document.addEventListener('keydown', event => {
+    const modal = document.querySelector('.video-modal.open, .success-modal.open');
+    if (!modal) return;
+    if (event.key === 'Escape') {
+      modal.id === 'videoModal' ? closeVideoModal() : closeSuccessModal();
+    } else if (event.key === 'Tab') {
+      const focusable = [...modal.querySelectorAll('button, a[href], video[controls]')];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
+    }
+  });
 }
 
 // FAQ Accordion Toggle
@@ -1406,12 +1516,14 @@ function initMobileMenu() {
 
   toggle?.addEventListener('click', () => {
     menu?.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(menu?.classList.contains('open')));
   });
 
   // Close menu when clicking link
   menu?.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
       menu.classList.remove('open');
+      toggle?.setAttribute('aria-expanded', 'false');
     });
   });
 }
@@ -1425,7 +1537,7 @@ function initScrollHeader() {
     } else {
       header?.classList.remove('scrolled');
     }
-  });
+  }, { passive: true });
 }
 
 // Language Switcher Controls
@@ -1471,11 +1583,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set current date as default in booking form
   const dateInput = document.getElementById('bookDate');
   if (dateInput) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = clinicToday();
     dateInput.min = today;
     dateInput.value = today;
   }
 
+  initActions();
   initScrollHeader();
   initMobileMenu();
   initLangButtons();

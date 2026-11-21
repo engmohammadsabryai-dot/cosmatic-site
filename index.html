@@ -17,13 +17,15 @@
   <meta property="og:description" content="Сертифицированный косметолог с медицинским образованием. Чиланзар-18, напротив Туркистон банка. Тел: +998900179000">
   <meta property="og:image" content="photo_2026-10-31_04-19-32.jpg">
   
+  <link rel="canonical" href="https://cosmatic-site.web.app/">
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
   
   <!-- Stylesheet -->
   <link rel="stylesheet" href="styles.css">
@@ -74,10 +76,10 @@
           <!-- Mobile Language Switcher Row -->
           <li class="mobile-lang-row" style="margin-top:1rem; border-top:1px solid var(--border-subtle); padding-top:1rem; display:none;">
             <div class="lang-segmented" style="justify-content:center;">
-              <button type="button" class="lang-seg-btn active" data-lang="uz" onclick="setLanguage('uz')">🇺🇿 UZ</button>
-              <button type="button" class="lang-seg-btn" data-lang="ru" onclick="setLanguage('ru')">🇷🇺 RU</button>
-              <button type="button" class="lang-seg-btn" data-lang="en" onclick="setLanguage('en')">🇬🇧 EN</button>
-              <button type="button" class="lang-seg-btn" data-lang="ar" onclick="setLanguage('ar')">🇦🇪 AR</button>
+              <button type="button" class="lang-seg-btn active" data-lang="uz">🇺🇿 UZ</button>
+              <button type="button" class="lang-seg-btn" data-lang="ru">🇷🇺 RU</button>
+              <button type="button" class="lang-seg-btn" data-lang="en">🇬🇧 EN</button>
+              <button type="button" class="lang-seg-btn" data-lang="ar">🇦🇪 AR</button>
             </div>
           </li>
         </ul>
@@ -88,34 +90,34 @@
         
         <!-- Direct 1-Click Language Switcher (Segmented) -->
         <div class="lang-segmented" role="group" aria-label="Language selector">
-          <button type="button" class="lang-seg-btn active" data-lang="uz" onclick="setLanguage('uz')" title="O'zbekcha">
+          <button type="button" class="lang-seg-btn active" data-lang="uz" title="O'zbekcha">
             <span>🇺🇿</span> UZ
           </button>
-          <button type="button" class="lang-seg-btn" data-lang="ru" onclick="setLanguage('ru')" title="Русский">
+          <button type="button" class="lang-seg-btn" data-lang="ru" title="Русский">
             <span>🇷🇺</span> RU
           </button>
-          <button type="button" class="lang-seg-btn" data-lang="en" onclick="setLanguage('en')" title="English">
+          <button type="button" class="lang-seg-btn" data-lang="en" title="English">
             <span>🇬🇧</span> EN
           </button>
-          <button type="button" class="lang-seg-btn" data-lang="ar" onclick="setLanguage('ar')" title="العربية">
+          <button type="button" class="lang-seg-btn" data-lang="ar" title="العربية">
             <span>🇦🇪</span> AR
           </button>
         </div>
 
         <!-- Currency Switcher -->
         <div class="currency-toggle">
-          <button type="button" class="curr-btn active" data-curr="uzs" onclick="setCurrency('uzs')">UZS</button>
-          <button type="button" class="curr-btn" data-curr="usd" onclick="setCurrency('usd')">USD $</button>
+          <button type="button" class="curr-btn active" data-curr="uzs">UZS</button>
+          <button type="button" class="curr-btn" data-curr="usd">USD $</button>
         </div>
 
         <!-- Quick Booking CTA -->
-        <a href="#bookingSection" class="btn btn-primary" style="display:none; @media(min-width: 900px){display:inline-flex;}">
+        <a href="#bookingSection" class="btn btn-primary header-booking">
           <i class="fa-brands fa-whatsapp"></i>
           <span data-i18n="btn_book_now">Qabulga yozilish</span>
         </a>
 
         <!-- Mobile Menu Toggle Button -->
-        <button type="button" class="mobile-toggle" id="mobileToggle" aria-label="Toggle Navigation">
+        <button type="button" class="mobile-toggle" id="mobileToggle" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle Navigation">
           <i class="fa-solid fa-bars"></i>
         </button>
 
@@ -317,7 +319,7 @@
               <div class="calc-total-val" id="calcTotalVal">0 UZS</div>
             </div>
 
-            <button class="btn btn-gold" id="btnCalcBook" style="width:100%;" onclick="bookCalcPackage()" disabled>
+            <button class="btn btn-gold" id="btnCalcBook" style="width:100%;" disabled>
               <i class="fa-brands fa-whatsapp"></i>
               <span data-i18n="btn_calc_book">To'plamni WhatsApp'da band qilish</span>
             </button>
@@ -629,15 +631,15 @@
           <h3 class="form-title" data-i18n="form_title">Uchrashuvni rasmiylashtirish</h3>
           <p class="form-subtitle" data-i18n="form_subtitle">Ma'lumotlaringizni kiriting va WhatsApp tugmasini bosing</p>
 
-          <form class="booking-form" id="bookingForm" onsubmit="handleBookingSubmit(event)">
+          <form class="booking-form" id="bookingForm">
             <div class="form-row">
               <div class="form-group">
                 <label for="bookName" class="form-label" data-i18n="label_name">Ismingiz:</label>
-                <input type="text" id="bookName" class="form-control" required placeholder="Masalan: Nilufar" data-i18n-ph="ph_name">
+                <input type="text" id="bookName" name="name" autocomplete="name" maxlength="100" class="form-control" required placeholder="Masalan: Nilufar" data-i18n-ph="ph_name">
               </div>
               <div class="form-group">
                 <label for="bookPhone" class="form-label" data-i18n="label_phone">Telefon raqamingiz:</label>
-                <input type="tel" id="bookPhone" class="form-control" required placeholder="+998 90 123 45 67" data-i18n-ph="ph_phone">
+                <input type="tel" id="bookPhone" name="phone" autocomplete="tel" maxlength="30" pattern="(?=(?:\D*\d){7,15}\D*$)\+?[0-9\(\) .\-]{7,30}" class="form-control" required placeholder="+998 90 123 45 67" data-i18n-ph="ph_phone">
               </div>
             </div>
 
@@ -665,7 +667,7 @@
 
             <div class="form-group">
               <label for="bookNotes" class="form-label" data-i18n="label_notes">Qo'shimcha istaklaringiz (ixtiyoriy):</label>
-              <textarea id="bookNotes" class="form-control" placeholder="Masalan: birinchi marta kelishim..." data-i18n-ph="ph_notes"></textarea>
+              <textarea id="bookNotes" maxlength="1000" class="form-control" placeholder="Masalan: birinchi marta kelishim..." data-i18n-ph="ph_notes"></textarea>
             </div>
 
             <button type="submit" class="btn btn-whatsapp" style="width:100%; padding:1rem; font-size:1.05rem;">
@@ -751,7 +753,7 @@
             src="https://maps.google.com/maps?q=41.274445,69.191262&z=16&output=embed" 
             allowfullscreen="" 
             loading="lazy" 
-            referrerpolicy="no-referrer-when-downgrade"
+            referrerpolicy="no-referrer"
             title="Clinic Location Map">
           </iframe>
         </div>
@@ -931,9 +933,9 @@
   </div>
 
   <!-- Video Lightbox Modal -->
-  <div class="video-modal" id="videoModal">
+  <div class="video-modal" id="videoModal" role="dialog" aria-modal="true" aria-label="Clinic video">
     <div class="video-modal-content">
-      <button class="modal-close-btn" onclick="closeVideoModal()" aria-label="Close video">
+      <button class="modal-close-btn" data-close-modal="videoModal" aria-label="Close video">
         <i class="fa-solid fa-xmark"></i>
       </button>
       <video class="video-modal-player" id="modalVideoPlayer" controls playsinline></video>
@@ -941,16 +943,17 @@
   </div>
 
   <!-- Booking Success Modal -->
-  <div class="success-modal" id="successModal">
+  <div class="success-modal" id="successModal" role="dialog" aria-modal="true" aria-labelledby="bookingStatusTitle">
     <div class="success-box">
       <div class="success-icon">
         <i class="fa-solid fa-check"></i>
       </div>
-      <h3 style="font-size:1.6rem; margin-bottom:0.75rem;" data-i18n="modal_success_title">Buyurtma Yuborildi!</h3>
+      <h3 style="font-size:1.6rem; margin-bottom:0.75rem;" id="bookingStatusTitle" data-i18n="modal_success_title">Buyurtma tayyor!</h3>
       <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.6; margin-bottom:2rem;" data-i18n="modal_success_p">
-        Ma'lumotlaringiz WhatsApp orqali yuborildi. Administratorimiz tez orada siz bilan bog'lanib, vaqtni tasdiqlaydi.
+        WhatsApp tayyor xabar bilan ochiladi. Yuborish tugmasini bosing. Agar ochilmasa, quyidagi WhatsApp havolasidan foydalaning.
       </p>
-      <button class="btn btn-primary" onclick="closeSuccessModal()" style="width:100%;" data-i18n="btn_modal_close">
+      <a id="whatsappFallback" class="btn btn-whatsapp" href="https://wa.me/998900179000" target="_blank" rel="noopener noreferrer" style="width:100%; margin-bottom:1rem;">WhatsApp</a>
+      <button class="btn btn-primary" data-close-modal="successModal" style="width:100%;" data-i18n="btn_modal_close">
         Tushunarli
       </button>
     </div>
